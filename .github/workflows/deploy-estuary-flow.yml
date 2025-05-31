@@ -37,10 +37,10 @@ jobs:
       - name: Debug Print token length
         run: |
           echo "Token length: $(echo -n \${{ secrets.ESTUARY_API_KEY }} | wc -c)"
-
+      # flowctl auth token --token ${{ secrets.ESTUARY_API_KEY }}
       - name: "Authenticate to Estuary Flow"
         run: |
-          flowctl auth token --token ${{ secrets.ESTUARY_API_KEY }}
+          flowctl auth login
           flowctl auth verify
 
       - name: "Validate All Specs Together"
