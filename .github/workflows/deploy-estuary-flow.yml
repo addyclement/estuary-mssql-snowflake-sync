@@ -34,6 +34,9 @@ jobs:
             -o /usr/local/bin/flowctl && sudo chmod +x /usr/local/bin/flowctl
             
         # Ensures we have the latest flowctl binary :contentReference[oaicite:24]{index=24}
+      - name: Debug Print token length
+        run: |
+          echo "Token length: $(echo -n \${{ secrets.ESTUARY_API_KEY }} | wc -c)"
 
       - name: "Authenticate to Estuary Flow"
         run: |
