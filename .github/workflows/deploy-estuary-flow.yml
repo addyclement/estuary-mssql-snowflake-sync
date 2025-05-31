@@ -32,8 +32,10 @@ jobs:
 
       - name: "Install flowctl CLI"
         run: |
-          curl -L https://github.com/estuary/flow/releases/download/v1.2.3/flowctl-linux-amd64.tar.gz             | tar xz
-          sudo mv flowctl /usr/local/bin/flowctl
+          curl -L \
+          https://github.com/estuary/flow/releases/latest/download/flowctl-x86_64-linux \
+          -o /usr/local/bin/flowctl && sudo chmod +x /usr/local/bin/flowctl
+
 
       - name: "Validate Estuary YAML definitions"
         run: |
