@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@a57b5f29c26badfe89501e6bf6c820b19d2f7b2a
+        uses: actions/checkout@v4
 
       - name: "Install flowctl CLI"
         run: |
