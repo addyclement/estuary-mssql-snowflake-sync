@@ -7,52 +7,54 @@ on:
   workflow_dispatch: {}
 
 env:
-  # Estuary API Key, stored as a GitHub secret
-  ESTUARY_API_KEY: ${{ secrets.ESTUARY_API_KEY }}
-  # SQL Server secrets
-  SQLSERVER_HOST: ${{ secrets.SQLSERVER_HOST }}
-  SQLSERVER_PORT: ${{ secrets.SQLSERVER_PORT }}
-  SQLSERVER_DATABASE: ${{ secrets.SQLSERVER_DATABASE }}
-  SQLSERVER_USERNAME: ${{ secrets.SQLSERVER_USERNAME }}
-  SQLSERVER_PASSWORD: ${{ secrets.SQLSERVER_PASSWORD }}
-  # Snowflake secrets
+  ESTUARY_API_KEY:    ${{ secrets.ESTUARY_API_KEY }}
+  SQLSERVER_HOST:    ${{ secrets.SQLSERVER_HOST }}
+  SQLSERVER_PORT:    ${{ secrets.SQLSERVER_PORT }}
+  SQLSERVER_DATABASE:${{ secrets.SQLSERVER_DATABASE }}
+  SQLSERVER_USERNAME:${{ secrets.SQLSERVER_USERNAME }}
   SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-  SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-  SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+  SNOWFLAKE_USER:    ${{ secrets.SNOWFLAKE_USER }}
   SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-  SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+  SNOWFLAKE_ROLE:     ${{ secrets.SNOWFLAKE_ROLE }}
 
 jobs:
   deploy:
-    name: "Validate and Deploy Estuary Definitions"
+    name: "Test & Deploy Estuary Specs"
     runs-on: ubuntu-latest
+
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v4
+        # Pin to v4 instead of a SHA to prevent 404 errors :contentReference[oaicite:23]{index=23}
 
       - name: "Install flowctl CLI"
         run: |
-          curl -L \
-          https://github.com/estuary/flow/releases/latest/download/flowctl-x86_64-linux \
-          -o /usr/local/bin/flowctl && sudo chmod +x /usr/local/bin/flowctl
+          sudo curl -L \
+            https://github.com/estuary/flow/releases/latest/download/flowctl-x86_64-linux \
+            -o /usr/local/bin/flowctl && sudo chmod +x /usr/local/bin/flowctl
+          flowctl version
+        # Ensures we have the latest flowctl binary :contentReference[oaicite:24]{index=24}
 
-
-      - name: "Dry-run: Validate Estuary YAML definitions"
-        # This will parse all files under .estuary/ for YAML validity and Flow schema compliance
+      - name: "Authenticate to Estuary Flow"
         run: |
-          flowctl catalog test --source .estuary/sqlserver-capture.yaml
-          flowctl catalog test --source .estuary/snowflake-materialization.yaml
-          flowctl catalog test --source .estuary/flow-binding.yaml
+          echo "${{ secrets.ESTUARY_API_KEY }}" | flowctl auth token --token -
+        # Logs into Flow so that catalog test can resolve cross-file references. :contentReference[oaicite:25]{index=25}
 
-
-      - name: "Sync to Estuary Flow"
+      - name: "Validate All Specs Together"
         run: |
-          flowctl sync .estuary/sqlserver-capture.yaml
+          flowctl catalog test --source .estuary/flow.yaml
+
+
+      - name: "Sync Resources to Estuary Flow"
+        run: |
           flowctl sync .estuary/snowflake-materialization.yaml
+          flowctl sync .estuary/sqlserver-capture.yaml
           flowctl sync .estuary/flow-binding.yaml
+        # Publishes validated specs to Flow 
 
-      - name: "Verify resource creation"
+      - name: "Confirm Resource Creation"
         run: |
-          flowctl list resources | grep sqlserver-capture || true
-          flowctl list resources | grep snowflake-materialization || true
-          flowctl list flows | grep mssql-to-snowflake-cdc-flow || true
+          flowctl get capture   | grep loandataservices/sqlserver-capture || true
+          flowctl get materialization | grep loandataservices/snowflake-materialization || true
+          flowctl get flow      | grep mssql-to-snowflake-cdc-flow || true
+        # Verifies the capture, materialization, and flow exist in Flow. 
