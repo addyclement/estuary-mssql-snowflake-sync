@@ -40,8 +40,7 @@ jobs:
 
       - name: "Authenticate to Estuary Flow"
         run: |
-          echo "${{ secrets.ESTUARY_API_KEY }}"
-          echo "${{ secrets.ESTUARY_API_KEY }}" | flowctl auth token --token -
+          flowctl auth login --token "${{ secrets.ESTUARY_API_KEY }}"
         # Logs into Flow so that catalog test can resolve cross-file references. :contentReference[oaicite:25]{index=25}
 
       - name: "Validate All Specs Together"
