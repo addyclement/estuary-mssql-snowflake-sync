@@ -40,7 +40,7 @@ jobs:
 
       - name: "Authenticate to Estuary Flow"
         run: |
-          echo "${{ secrets.ESTUARY_API_KEY }}" | flowctl auth --token -
+          flowctl auth token --token ${{ secrets.ESTUARY_API_KEY }}
           flowctl auth verify
 
       - name: "Validate All Specs Together"
