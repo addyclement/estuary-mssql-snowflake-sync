@@ -40,8 +40,10 @@ jobs:
       - name: "Dry-run: Validate Estuary YAML definitions"
         # This will parse all files under .estuary/ for YAML validity and Flow schema compliance
         run: |
-          flowctl apply --path .estuary/ --dry-run
-        # If the above step fails, the job exits with non-zero and we never get here
+          flowctl catalog test --source .estuary/sqlserver-capture.yaml
+          flowctl catalog test --source .estuary/snowflake-materialization.yaml
+          flowctl catalog test --source .estuary/flow-binding.yaml
+
 
       - name: "Sync to Estuary Flow"
         run: |
