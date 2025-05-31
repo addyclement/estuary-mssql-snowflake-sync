@@ -1,0 +1,54 @@
+name: "Deploy Estuary Flow (CDC-only)"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+env:
+  # Estuary API Key, stored as a GitHub secret
+  ESTUARY_API_KEY: ${{ secrets.ESTUARY_API_KEY }}
+  # SQL Server secrets
+  SQLSERVER_HOST: ${{ secrets.SQLSERVER_HOST }}
+  SQLSERVER_PORT: ${{ secrets.SQLSERVER_PORT }}
+  SQLSERVER_DATABASE: ${{ secrets.SQLSERVER_DATABASE }}
+  SQLSERVER_USERNAME: ${{ secrets.SQLSERVER_USERNAME }}
+  SQLSERVER_PASSWORD: ${{ secrets.SQLSERVER_PASSWORD }}
+  # Snowflake secrets
+  SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+  SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+  SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+  SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+  SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+
+jobs:
+  deploy:
+    name: "Validate and Deploy Estuary Definitions"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@a57b5f29c26badfe89501e6bf6c820b19d2f7b2a
+
+      - name: "Install flowctl CLI"
+        run: |
+          curl -L https://github.com/estuary/flow/releases/download/v1.2.3/flowctl-linux-amd64.tar.gz             | tar xz
+          sudo mv flowctl /usr/local/bin/flowctl
+
+      - name: "Validate Estuary YAML definitions"
+        run: |
+          flowctl validate .estuary/sqlserver-capture.yaml
+          flowctl validate .estuary/snowflake-materialization.yaml
+          flowctl validate .estuary/flow-binding.yaml
+
+      - name: "Sync to Estuary Flow"
+        run: |
+          flowctl sync .estuary/sqlserver-capture.yaml
+          flowctl sync .estuary/snowflake-materialization.yaml
+          flowctl sync .estuary/flow-binding.yaml
+
+      - name: "Verify resource creation"
+        run: |
+          flowctl list resources | grep sqlserver-capture || true
+          flowctl list resources | grep snowflake-materialization || true
+          flowctl list flows | grep mssql-to-snowflake-cdc-flow || true

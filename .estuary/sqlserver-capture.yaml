@@ -1,0 +1,41 @@
+captures:
+  loandataservices/sqlserver-capture:
+    endpoint:
+      connector:
+        image: ghcr.io/estuary/source-sqlserver:dev
+        config:
+          host: "${{ secrets.SQLSERVER_HOST }}"
+          port: "${{ secrets.SQLSERVER_PORT }}"
+          database: "${{ secrets.SQLSERVER_DATABASE }}"
+          authentication:
+            username: "${{ secrets.SQLSERVER_USERNAME }}"
+            password: "${{ secrets.SQLSERVER_PASSWORD }}"
+
+          tables:
+            - schema: "dbo"
+              table: "Customers"
+            - schema: "dbo"
+              table: "Loan"
+            - schema: "dbo"
+              table: "LoanInstallment"
+            - schema: "dbo"
+              table: "LoanHistory"
+          bookmarkDuration: "1h"
+          taskShards: 1
+    bindings:
+      - resource:
+          schema: "dbo"
+          table: "Customers"
+        target: loandataservices/customers
+      - resource:
+          schema: "dbo"
+          table: "Loan"
+        target: loandataservices/loan
+      - resource:
+          schema: "dbo"
+          table: "LoanInstallment"
+        target: loandataservices/loaninstallment
+      - resource:
+          schema: "dbo"
+          table: "LoanHistory"
+        target: loandataservices/loanhistory

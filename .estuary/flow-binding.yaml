@@ -1,0 +1,15 @@
+flows:
+  mssql-to-snowflake-cdc-flow:
+    bindings:
+      - source: loandataservices/sqlserver-capture/Customers
+        target: loandataservices/snowflake-materialization/Customers
+        mode: cdc
+      - source: loandataservices/sqlserver-capture/Loan
+        target: loandataservices/snowflake-materialization/Loan
+        mode: cdc
+      - source: loandataservices/sqlserver-capture/LoanInstallment
+        target: loandataservices/snowflake-materialization/LoanInstallment
+        mode: cdc
+      - source: loandataservices/sqlserver-capture/LoanHistory
+        target: loandataservices/snowflake-materialization/LoanHistory
+        mode: cdc

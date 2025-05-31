@@ -1,0 +1,38 @@
+materializations:
+  loandataservices/snowflake-materialization:
+    endpoint:
+      connector:
+        image: ghcr.io/estuary/materialize-snowflake:dev
+        config:
+          host: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+          user: "${{ secrets.SNOWFLAKE_USER }}"
+          password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+          database: "BRONZE"
+          schema: "LoanDataServicesClone"
+          warehouse: "${{ secrets.SNOWFLAKE_WAREHOUSE }}"
+          role: "${{ secrets.SNOWFLAKE_ROLE }}"
+          maxConcurrentTransactions: 4
+    syncSchedule:
+      syncFrequency: "5m"
+      timezone: "UTC"
+    bindings:
+      - source: loandataservices/customers
+        target:
+          database: "BRONZE"
+          schema: "LoanDataServicesClone"
+          table: "Customers"
+      - source: loandataservices/loan
+        target:
+          database: "BRONZE"
+          schema: "LoanDataServicesClone"
+          table: "Loan"
+      - source: loandataservices/loaninstallment
+        target:
+          database: "BRONZE"
+          schema: "LoanDataServicesClone"
+          table: "LoanInstallment"
+      - source: loandataservices/loanhistory
+        target:
+          database: "BRONZE"
+          schema: "LoanDataServicesClone"
+          table: "LoanHistory"
