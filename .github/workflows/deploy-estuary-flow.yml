@@ -37,11 +37,11 @@ jobs:
           -o /usr/local/bin/flowctl && sudo chmod +x /usr/local/bin/flowctl
 
 
-      - name: "Validate Estuary YAML definitions"
+      - name: "Dry-run: Validate Estuary YAML definitions"
+        # This will parse all files under .estuary/ for YAML validity and Flow schema compliance
         run: |
-          flowctl validate .estuary/sqlserver-capture.yaml
-          flowctl validate .estuary/snowflake-materialization.yaml
-          flowctl validate .estuary/flow-binding.yaml
+          flowctl apply --path .estuary/ --dry-run
+        # If the above step fails, the job exits with non-zero and we never get here
 
       - name: "Sync to Estuary Flow"
         run: |
